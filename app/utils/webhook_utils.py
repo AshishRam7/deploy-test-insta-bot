@@ -8,23 +8,19 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-def verify_webhook_signature(request: Request, raw_body: bytes) -> bool:
-    """Verify that the webhook request is from Meta."""
-    signature = request.headers.get("X-Hub-Signature-256", "")
-    if not signature or not signature.startswith("sha256="):
-        logger.error("Signature is missing or not properly formatted")
+async def verify_webhook_signature(request: Request, raw_body: bytes) -> bool:  # ADD async here
+    """Verifies the webhook signature from the request headers."""
+    signature = request.headers.get("X-Hub-Signature")
+    if not signature:
         return False
 
-    expected_signature = hmac.new(
-        settings.app_secret.encode('utf-8'), # Use settings
+    expected_signature = 'sha1=' + hmac.new(
+        settings.webhook_secret.encode('utf-8'),  # Use your webhook secret from settings
         raw_body,
-        hashlib.sha256
+        hashlib.sha1
     ).hexdigest()
 
-    if not hmac.compare_digest(signature[7:], expected_signature):
-        logger.error(f"Signature mismatch: {signature[7:]} != {expected_signature}")
-        return False
-    return True
+    return hmac.compare_digest(signature, expected_signature)
 
 def parse_instagram_webhook(data):
     """Parse Instagram webhook events for direct messages and comments."""
