@@ -15,3 +15,14 @@ def create_celery_app():
     return celery_app
 
 celery = create_celery_app()
+
+def startup_event():
+    """Check Celery connection on startup."""
+    # Optional: Add any Celery startup checks here
+    # For example, you might want to verify the broker connection
+    try:
+        celery.broker_connection().ensure_connection(max_retries=3)
+        print("Celery broker connection successful")
+    except Exception as e:
+        print(f"Celery connection failed: {str(e)}")
+    return
