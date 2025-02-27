@@ -15,7 +15,7 @@ async def verify_webhook_signature(request: Request, raw_body: bytes) -> bool:  
         return False
 
     expected_signature = 'sha1=' + hmac.new(
-        settings.webhook_secret.encode('utf-8'),  # Use your webhook secret from settings
+        settings.APP_SECRET.encode('utf-8'),  # Use your webhook secret from settings
         raw_body,
         hashlib.sha1
     ).hexdigest()
