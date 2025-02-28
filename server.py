@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, Response, HTTPException, Query, Depends
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
+# Removed: from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 from typing import List, Dict
@@ -28,7 +28,7 @@ nltk.download('vader_lexicon')
 
 load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+# Removed: STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -109,7 +109,7 @@ def startup_event():
                     logger.warning(f"    - {task['name']} (id: {task['id']})")
     else:
         logger.info("No active Celery tasks on startup.")
-        
+
 startup_event()
 
 @celery.task(name="send_dm")
@@ -543,8 +543,9 @@ async def events(request: Request):
     return EventSourceResponse(event_generator(request))
 
 
-# Serve static HTML
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Removed: Serve static HTML and mount
+# app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 # --- MODIFICATION: Celery task check on startup ---
 
