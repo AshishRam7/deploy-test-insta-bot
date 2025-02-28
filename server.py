@@ -23,6 +23,7 @@ from api_tasks.postmsg import postmsg
 from api_tasks.sendreply import sendreply
 from celery import Celery
 import random
+import configparser
 
 nltk.download('vader_lexicon')
 
@@ -33,6 +34,44 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# --- Configuration Class ---
+class Config:
+    def __init__(self):
+        config_parser = configparser.ConfigParser()
+        config_parser.read('config.ini') # Read the config.ini file
+
+        # --- API Section ---
+        self.GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", config_parser.get('api', 'gemini_api_key'))
+        self.MODEL_NAME = os.getenv("MODEL_NAME", config_parser.get('api', 'model_name'))
+        self.APP_SECRET = os.getenv("APP_SECRET", config_parser.get('api', 'app_secret'))
+        self.VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", config_parser.get('api', 'verify_token'))
+
+        # --- Celery Section ---
+        self.CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", config_parser.get('celery', 'broker_url'))
+        self.CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", config_parser.get('celery', 'result_backend'))
+
+        # --- Default Responses Section ---
+        self.DEFAULT_DM_RESPONSE_POSITIVE = os.getenv("DEFAULT_DM_RESPONSE_POSITIVE", config_parser.get('defaults', 'dm_response_positive'))
+        self.DEFAULT_DM_RESPONSE_NEGATIVE = os.getenv("DEFAULT_DM_RESPONSE_NEGATIVE", config_parser.get('defaults', 'dm_response_negative'))
+        self.DEFAULT_COMMENT_RESPONSE_POSITIVE = os.getenv("DEFAULT_COMMENT_RESPONSE_POSITIVE", config_parser.get('defaults', 'comment_response_positive'))
+        self.DEFAULT_COMMENT_RESPONSE_NEGATIVE = os.getenv("DEFAULT_COMMENT_RESPONSE_NEGATIVE", config_parser.get('defaults', 'comment_response_negative'))
+
+        # --- Instagram Section ---
+        self.INSTAGRAM_ACCOUNT_ID_FOR_COMMENTS = os.getenv("INSTAGRAM_ACCOUNT_ID", config_parser.get('instagram', 'account_id_for_comments'))
+
+        # --- Account Credentials (JSON from ENV, config.ini is just a default) ---
+        accounts_json_str = os.getenv("ACCOUNTS", config_parser.get('instagram', 'accounts_json')) # ENV overrides config.ini
+        try:
+            self.ACCOUNT_CREDENTIALS: Dict[str, str] = json.loads(accounts_json_str)
+            logger.info("Account credentials loaded from environment variable ACCOUNTS.")
+        except json.JSONDecodeError:
+            self.ACCOUNT_CREDENTIALS: Dict[str, str] = {}
+            logger.error("Failed to parse ACCOUNTS environment variable as JSON. Using empty account credentials.")
+
+config = Config() # Instantiate the config
+# --- End Configuration Class ---
+
 
 # Initialize FastAPI app
 app = FastAPI(title="Meta Webhook Server")
@@ -53,33 +92,27 @@ WEBHOOK_EVENTS = deque(maxlen=100)
 # Store SSE clients
 CLIENTS: List[asyncio.Queue] = []
 
-# Webhook Credentials
-APP_SECRET = os.getenv("APP_SECRET")
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
-gemini_api_key = os.getenv("GEMINI_API_KEY")
-model_name = "gemini-1.5-flash"
+# Webhook Credentials (now using config object)
+APP_SECRET = config.APP_SECRET
+VERIFY_TOKEN = config.VERIFY_TOKEN
+gemini_api_key = config.GEMINI_API_KEY
+model_name = config.MODEL_NAME
 
 
-default_dm_response_positive = "Thanks for your kind words! We appreciate your support."
-default_dm_response_negative = "We are sorry to hear you're not satisfied. Please tell us more about this so that we can improve."
-default_comment_response_positive = "Thanks for your kind words! We appreciate your support."
-default_comment_response_negative = "We are sorry to hear you're not satisfied. Please tell us more about this so that we can improve."
+default_dm_response_positive = config.DEFAULT_DM_RESPONSE_POSITIVE
+default_dm_response_negative = config.DEFAULT_DM_RESPONSE_NEGATIVE
+default_comment_response_positive = config.DEFAULT_COMMENT_RESPONSE_POSITIVE
+default_comment_response_negative = config.DEFAULT_COMMENT_RESPONSE_NEGATIVE
 # Save Webhook Events to JSON File
 WEBHOOK_FILE = "webhook_events.json"
 
 # --- MODIFICATION: In-Memory Broker and Backend ---
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "memory://")
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "cache+memory://")
+CELERY_BROKER_URL = config.CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = config.CELERY_RESULT_BACKEND
 # -------------------------------------------------
 
 # --- MODIFICATION: Load Account Credentials from Environment Variable ---
-ACCOUNTS_JSON = os.getenv("ACCOUNTS", '{}') # Default to empty JSON object if not set
-try:
-    ACCOUNT_CREDENTIALS: Dict[str, str] = json.loads(ACCOUNTS_JSON)
-    logger.info("Account credentials loaded from environment variable ACCOUNTS.")
-except json.JSONDecodeError:
-    ACCOUNT_CREDENTIALS: Dict[str, str] = {}
-    logger.error("Failed to parse ACCOUNTS environment variable as JSON. Using empty account credentials.")
+ACCOUNT_CREDENTIALS: Dict[str, str] = config.ACCOUNT_CREDENTIALS
 # ----------------------------------------------------------------------
 
 
@@ -512,6 +545,15 @@ async def event_generator(request: Request):
 async def events(request: Request):
     """SSE endpoint for real-time webhook events."""
     return EventSourceResponse(event_generator(request))
+
+
+# Removed: Serve static HTML and mount
+# app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# --- MODIFICATION: Celery task check on startup ---
+
+# --------------------------------------------------
+
 
 if __name__ == "__main__":
     import uvicorn
