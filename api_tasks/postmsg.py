@@ -1,3 +1,8 @@
+import requests
+import logging
+
+logger = logging.getLogger(__name__)  # Ensure logger is defined
+
 def postmsg(access_token, recipient_id, message_to_be_sent):
     """Sends a direct message to Instagram."""
     logger.info(f"Post Function Triggered: Sending DM to recipient {recipient_id} using access token: {access_token}")
