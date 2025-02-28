@@ -21,8 +21,8 @@ import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from celery import Celery
 import random
-import api_tasks
-from api_tasks import sendreply, postmsg
+from api_tasks.postmsg import postmsg
+from api_tasks.sendreply import sendreply
 
 nltk.download('vader_lexicon')
 
