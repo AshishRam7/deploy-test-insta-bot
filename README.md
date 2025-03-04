@@ -36,7 +36,7 @@ This project is a robust and scalable **Instagram Automation Server Bot** built 
 
 ## **Architecture**
 
-<descriptive_img>
+![diagram-export-3-4-2025-1_51_38-PM](https://github.com/user-attachments/assets/433c5fe7-99be-46f7-8837-452b4485ba69)
 
 The system consists of three primary components:
 
