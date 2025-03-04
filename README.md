@@ -162,6 +162,8 @@ bash -c "celery -A server.celery worker -l info & uvicorn server:app --host 0.0.
 | `GET` | `/health` | System metrics and health check |
 | `GET` | `/events` | Stream webhook events in real-time |
 | `POST` | `/webhook` | Handles Instagram webhook events |
+| `GET` | `/webhook_events` | Stores and displays Instagram webhook events |
+
 
 ---
 
