@@ -127,6 +127,8 @@ uvicorn server:app --reload --host 0.0.0.0 --port 8000
 
 ## **Deployment on Render**
 
+**Important Note:** Ensure that the Web Service and Redis Instance are present inside the same Render workspace to make sure the connection between them is established
+
 ### **1. Provision Redis Instance**
 - Create a **Redis instance** on Render.
 - Obtain connection URL(Internal URL): `redis://<username>:<password>@<host>:<port>`.
@@ -207,18 +209,20 @@ CELERY_RESULT_BACKEND="redis://localhost:6379/0"
 
    ![image](https://github.com/user-attachments/assets/9bd7d6a1-e0fe-40f5-9b22-fa723b505e07)
 
-11. Make the App live before the next verification step.
+10. Make the App live before the next verification step.
 
     <img width="866" alt="image" src="https://github.com/user-attachments/assets/a085ce24-7ef0-420d-a29f-bc994f4e3c40" />
 
-13. Toggle the **add certificate** option and then click **Verify Webhook Server** to verify your server and start receiving your webhook notifications.
+11. Toggle the **add certificate** option and then click **Verify Webhook Server** to verify your server and start receiving your webhook notifications.
 
     ![image](https://github.com/user-attachments/assets/70602b8b-1160-4504-9ad7-64dd691e621f)
 
-15. Subscribe to **comments, live_comments** and the **messages** webhook_fields.
+12. Subscribe to **comments, live_comments** and the **messages** webhook_fields.
 
     ![image](https://github.com/user-attachments/assets/669282ad-9623-4c94-b138-02eea097ae6b)
 
+
+**Importante Note* : The Instagram Account_id and access tokens are sensitive information and need to be stored safely
 
 
 ---
