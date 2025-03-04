@@ -38,7 +38,7 @@ This project is a robust and scalable **Instagram Automation Server Bot** built 
 
 ## **Architecture**
 
-<descriptive_img>
+![System Architecture](path/to/architecture-diagram.png)
 
 The system consists of three primary components:
 
@@ -52,21 +52,6 @@ The system consists of three primary components:
 3. Sentiment analysis and response generation are handled asynchronously via Celery.
 4. Responses are either **default sentiment-based** or generated dynamically using **Google Gemini API**.
 5. Replies are sent back to Instagram using the Graph API.
-
----
-
-## **Technology Stack**
-
-| Component  | Technology  |
-|------------|-------------|
-| **Backend Framework** | FastAPI |
-| **Task Queue** | Celery |
-| **Language Model** | Google Gemini API |
-| **Sentiment Analysis** | NLTK (VADER) |
-| **Database** | SQLite (Easily replaceable) |
-| **Messaging & Event Processing** | Webhooks, Server-Sent Events (SSE) |
-| **API Calls** | requests (Python HTTP client) |
-| **Environment Variables** | python-dotenv |
 
 ---
 
@@ -125,50 +110,12 @@ uvicorn server:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## **Deployment on Render**
-
-### **1. Provision Redis Instance**
-- Create a **Redis instance** on Render.
-- Obtain connection URL(Internal URL): `redis://<username>:<password>@<host>:<port>`.
-
-### **2. Deploy Web Service**
-- Create a new **Web Service** on Render.
-- Connect the current github repository with the service.
-- Enter the below the details in the appropriate sections:
-#### **Build Command:**
-
-```bash
-pip install -r requirements.txt && python -c "import nltk; nltk.download('vader_lexicon')"
-```
-
-#### **Start Command:**
-
-```bash
-bash -c "celery -A server.celery worker -l info & uvicorn server:app --host 0.0.0.0 --port 8000"
-```
-
-- Set up /health as the server health checkpoint section
-- Set up the following Enviroment variables: 
-```ini
-APP_SECRET="your_meta_app_secret"
-VERIFY_TOKEN="your_verify_token"
-GEMINI_API_KEY="your_gemini_api_key"
-INSTAGRAM_ACCOUNT_ID="your_instagram_account_id"
-ACCOUNTS={"IG_ACCOUNT_ID_1":"IG_ACCESS_TOKEN_1", "": "", ...}
-CELERY_BROKER_URL="redis://localhost:6379/0"
-CELERY_RESULT_BACKEND="redis://localhost:6379/0"
-```
-
-- Click on deploy service 
-
----
-
 ## **Meta App Setup for Webhooks**
 
 1. **Create a Meta App** on the [Meta Developer Dashboard](https://developers.facebook.com/).
 2. **Navigate to Subscriptions** → Subscribe to **Instagram**.
-3. Click **API Setup with Instagram Login**.
-4. Set the Webhook URL as `https://<public_url>/webhook` and use the verification token from `Environment variables`.
+3. Click **Setup with Instagram Login**.
+4. Set the Webhook URL as `https://<public_url>/webhook` and use the verification token from `.env`.
 5. Click **Verify Webhook Server**.
 6. **Add Instagram Tester Accounts**:
    - Click **Add Account**.
@@ -178,12 +125,36 @@ CELERY_RESULT_BACKEND="redis://localhost:6379/0"
    - If a blank white screen appears, inspect the page and search for `IGAA`.
    - Copy the token and store it securely.
 
+<descriptive_img>
+
 ---
 
+## **Deployment on Render**
+
+### **1. Provision Redis Instance**
+- Create a **Redis instance** on Render.
+- Obtain connection URL: `redis://<username>:<password>@<host>:<port>`.
+
+### **2. Deploy Web Service**
+- Create a new **Web Service** on Render.
+- Connect the GitHub repository.
+- Set up **Build Command:**
+
+```bash
+pip install -r requirements.txt && python -c "import nltk; nltk.download('vader_lexicon')"
+```
+
+- Set up **Start Command:**
+
+```bash
+bash -c "celery -A server.celery worker -l info & uvicorn server:app --host 0.0.0.0 --port 8000"
+```
+
+- Set `/health` as the health check endpoint.
+
+---
 
 ## **API Documentation**
-
-### **Available Endpoints**
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -191,36 +162,6 @@ CELERY_RESULT_BACKEND="redis://localhost:6379/0"
 | `GET` | `/health` | System metrics and health check |
 | `GET` | `/events` | Stream webhook events in real-time |
 | `POST` | `/webhook` | Handles Instagram webhook events |
-| `GET` | `/webhook_events` | Stores and displays Instagram webhook events |
-
-
----
-
-## **Customization**
-
-- Modify **default responses** in `server.py`.
-- Update **sentiment thresholds** in `analyze_sentiment()`.
-- Adjust **response delays** in webhook handlers.
-- Fine-tune **Google Gemini prompts** in `system_prompt.txt`.
-
----
-
-## **CI/CD Pipeline**
-
-- GitHub Actions for automated testing.
-- Runs unit tests (`pytest`) on each push.
-- Verifies API health endpoints.
-- Configuration in `.github/workflows/buildrun.yaml`.
-
----
-
-## **Contributing**
-
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature/your-feature`.
-3. Commit changes: `git commit -m "Add your feature"`.
-4. Push to GitHub: `git push origin feature/your-feature`.
-5. Open a **Pull Request**.
 
 ---
 
@@ -234,8 +175,4 @@ CELERY_RESULT_BACKEND="redis://localhost:6379/0"
 
 - [GitHub Issues](https://github.com/your-github-username/your-repo-name/issues)
 - Email: `your.email@example.com`
-
----
-
-**⚠ Disclaimer:** Ensure compliance with Instagram's terms of service. Avoid spam-like behavior that may result in account suspension.
 
