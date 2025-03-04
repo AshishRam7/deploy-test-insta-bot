@@ -5,7 +5,6 @@
 [![Python Version](https://img.shields.io/badge/Python-3.11+-brightgreen.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-blueviolet.svg)](https://fastapi.tiangolo.com/)
 [![Celery](https://img.shields.io/badge/Celery-5.3+-orange.svg)](https://docs.celeryq.dev/en/stable/)
-[![CI/CD](https://github.com/ashishram7/deploy-test-insta-bot/actions/workflows/buildrun.yaml/badge.svg)](https://github.com/ashishram7/deploy-test-insta-bot/actions/workflows/buildrun.yaml)
 
 ## Overview
 
@@ -72,6 +71,7 @@ This project is a powerful and flexible Instagram automation server bot built us
     VERIFY_TOKEN="your_verify_token"
     GEMINI_API_KEY="your_gemini_api_key"
     INSTAGRAM_ACCOUNT_ID="your_instagram_account_id"
+    ACCOUNTS={"IG_ACCOUNT_ID_1":"IG_ACCESS_TOKEN_1" ,"":"" ,...}
     # For Redis production setup:
     # CELERY_BROKER_URL="redis_instance_internal_url"
     # CELERY_RESULT_BACKEND="redis_instance_internal_url"
@@ -137,15 +137,9 @@ Automated testing with GitHub Actions:
       - Callback URL: `https://your-domain/webhook`
       - Verify Token: Your `VERIFY_TOKEN`
       - Subscribe to: messages, comments, mentions
-
-2. **Account Management:**
-    ```bash
-    curl -X POST "http://localhost:8000/accounts" \
-      -H "Content-Type: application/json" \
-      -d '{"account_id": "YOUR_ACCOUNT_ID", "access_token": "YOUR_ACCESS_TOKEN"}'
     ```
 
-3. **Endpoints:**
+2. **Endpoints:**
     - `GET /ping`: Server status check
     - `GET /health`: Detailed system metrics
     - `GET /events`: Real-time event stream
