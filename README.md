@@ -1,5 +1,7 @@
 # Instagram Automation Server Bot
 
+![Instagram Automation Bot](path/to/your/image.png)
+
 [![Project Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/your-github-username/your-repo-name)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/Python-3.11+-brightgreen.svg)](https://www.python.org/downloads/)
@@ -8,173 +10,201 @@
 
 ## Overview
 
-This project is a powerful and flexible Instagram automation server bot built using Python, FastAPI, and Celery. It's designed to intelligently handle Instagram Direct Messages (DMs) and comments by leveraging sentiment analysis and a Language Model (Google Gemini) for automated responses. The bot listens for real-time events from Instagram via webhooks, allowing for proactive engagement with your audience.
+This project is a robust and scalable **Instagram Automation Server Bot** built using **FastAPI** and **Celery**. It enables **intelligent automation of Instagram Direct Messages (DMs) and comments** through **sentiment analysis** and **Google Gemini (LLM) integration**. The bot listens for **real-time events** via **Instagram Webhooks**, ensuring dynamic and proactive engagement with followers.
 
-**Key Features:**
+### **Key Features**
 
-*   **Real-time Instagram Webhook Handling:**  Receives and processes Instagram webhook events for direct messages and comments.
-*   **Webhook Signature Verification:**  Ensures the security of incoming webhooks by verifying signatures from Meta.
-*   **Intelligent Response Automation:**
-    *   **Sentiment Analysis:** Uses NLTK's VADER to analyze the sentiment of incoming messages and comments (Positive/Negative).
-    *   **Language Model Integration (Google Gemini):** Generates contextually relevant responses to DMs based on sentiment and conversation history.
-    *   **Default Responses:** Fallback responses are used for sentiment-based replies when the Language Model is unavailable or fails.
-*   **Direct Message Automation:**
-    *   Manages conversations and queues messages for each conversation.
-    *   Schedules delayed responses using Celery to mimic human-like interaction.
-    *   Responds to new messages within existing conversations, rescheduling response tasks dynamically.
-*   **Comment Automation:**
-    *   Automatically replies to Instagram comments based on sentiment (Positive/Negative) with default responses.
-    *   Schedules delayed comment replies using Celery.
-*   **Account Management:** Stores and retrieves Instagram access tokens securely using an SQLite database, allowing for multi-account support (expandable).
-*   **Scalable Task Processing:** Utilizes Celery for asynchronous task management, ensuring efficient handling of responses and preventing blocking the main API server.
-*   **Real-time Event Streaming (SSE):** Provides a Server-Sent Events endpoint (`/events`) to stream webhook events in real-time to connected clients for monitoring and debugging.
-*   **Health Monitoring:** Includes `/ping` and `/health` endpoints for server health checks and uptime monitoring.
-*   **Configuration via Environment Variables:**  Easily configure sensitive information (API keys, tokens) using a `.env` file.
-*   **Detailed Logging:**  Comprehensive logging for debugging and monitoring bot activity.
-*   **Easy Setup:**  Simple installation and configuration process.
+- **Webhook Handling:** Real-time processing of Instagram messages and comments.
+- **Security:** Webhook signature verification for authenticity.
+- **Intelligent Responses:**
+  - **Sentiment Analysis (VADER - NLTK)** for Positive/Negative categorization.
+  - **Google Gemini API** for context-aware message replies.
+  - **Fallback Responses** when the LLM is unavailable.
+- **Direct Message Automation:**
+  - Queueing and scheduling responses for human-like interaction.
+  - Handling ongoing conversations dynamically.
+- **Comment Automation:**
+  - Auto-reply to comments based on sentiment.
+  - Scheduled responses to avoid bot-like behavior.
+- **Account Management:** Secure storage of **Instagram Access Tokens** in **SQLite**.
+- **Scalable Architecture:** Background task execution using **Celery**.
+- **Real-time Monitoring:** **Server-Sent Events (SSE)** endpoint to stream webhook events.
+- **Health Monitoring:** `/ping` and `/health` endpoints for uptime checks.
+- **Configuration Management:** Environment variables stored securely in `.env`.
+- **Detailed Logging:** Comprehensive logs for debugging and performance analysis.
+- **Ease of Deployment:** Ready for **local development** and **cloud deployment** (e.g., **Render**).
 
-## Tech Stack
-*   **Backend Framework:** [FastAPI](https://fastapi.tiangolo.com/) (for building the API server)
-*   **Asynchronous Task Queue:** [Celery](https://docs.celeryq.dev/en/stable/) (for managing background tasks like sending responses)
-*   **Language Model (LLM):** [Google Gemini API](https://ai.google.dev/gemini-api) (for generating dynamic DM responses)
-*   **Sentiment Analysis:** [NLTK (VADER)](https://www.nltk.org/howto/vader.html) (for sentiment analysis of text)
-*   **Database:** [SQLite](https://www.sqlite.org/index.html) (for storing account access tokens - easily replaceable with other databases)
-*   **Real-time Communication:** [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) via `sse_starlette`
-*   **HTTP Client:** [requests](https://requests.readthedocs.io/en/latest/) (for making API calls to Instagram and Google Gemini)
-*   **Environment Management:** [python-dotenv](https://pypi.org/project/python-dotenv/) (for loading environment variables from `.env` file)
-*   **Dependency Management:** [pip](https://pip.pypa.io/en/stable/)
+---
 
-## Setup and Installation
+## **Architecture**
 
-### Local Development Setup
+![System Architecture](path/to/architecture-diagram.png)
 
-1. **Prerequisites:**
-    - Python 3.11+
-    - Redis (for production-like setup):
-      ```bash
-      # Ubuntu/Debian
-      sudo apt-get install redis-server
-      # MacOS
-      brew install redis
-      ```
+The system consists of three primary components:
 
-2. **Clone Repository:**
-    ```bash
-    git clone https://github.com/your-github-username/your-repo-name.git
-    cd your-repo-name
-    ```
+1. **FastAPI Web Server**: Handles incoming webhook events, processes them, and triggers automation logic.
+2. **Celery Task Queue**: Manages background tasks asynchronously to avoid blocking the API server.
+3. **Redis** (Broker & Result Backend): Used by Celery for task scheduling and execution.
 
-3. **Environment Variables:**
-    Create `.env` file:
-    ```env
-    APP_SECRET="your_meta_app_secret"
-    VERIFY_TOKEN="your_verify_token"
-    GEMINI_API_KEY="your_gemini_api_key"
-    INSTAGRAM_ACCOUNT_ID="your_instagram_account_id"
-    ACCOUNTS={"IG_ACCOUNT_ID_1":"IG_ACCESS_TOKEN_1" ,"":"" ,...}
-    # For Redis production setup:
-    # CELERY_BROKER_URL="redis_instance_internal_url"
-    # CELERY_RESULT_BACKEND="redis_instance_internal_url"
-    ```
+**Workflow:**
+1. Instagram sends a webhook event (message/comment) → Received by FastAPI.
+2. FastAPI verifies the webhook signature and extracts the event data.
+3. Sentiment analysis and response generation are handled asynchronously via Celery.
+4. Responses are either **default sentiment-based** or generated dynamically using **Google Gemini API**.
+5. Replies are sent back to Instagram using the Graph API.
 
-4. **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    python -c "import nltk; nltk.download('vader_lexicon')"
-    ```
+---
 
-5. **Run Services:**
-    ```bash
-    # Terminal 1 - Celery Worker
-    celery -A server.celery worker --loglevel=info
-    
-    # Terminal 2 - FastAPI Server
-    uvicorn server:app --reload --host 0.0.0.0 --port 8000
-    ```
+## **Technology Stack**
 
-### Production Deployment on Render
+| Component  | Technology  |
+|------------|-------------|
+| **Backend Framework** | FastAPI |
+| **Task Queue** | Celery |
+| **Language Model** | Google Gemini API |
+| **Sentiment Analysis** | NLTK (VADER) |
+| **Database** | SQLite (Easily replaceable) |
+| **Messaging & Event Processing** | Webhooks, Server-Sent Events (SSE) |
+| **API Calls** | requests (Python HTTP client) |
+| **Environment Variables** | python-dotenv |
 
-1. **Redis Instance:**
-    - Create Redis instance on Render
-    - Note connection URL: `redis://<username>:<password>@<host>:<port>`
+---
 
-2. **Web Service:**
-    - **Build Command:**
-      ```bash
-      pip install -r requirements.txt && python -c "import nltk; nltk.download('vader_lexicon')"
-      ```
-    - **Start Command:**
-      ```bash
-      bash -c "celery -A server.celery worker -l info & uvicorn server:app --host 0.0.0.0 --port 8000"
-      ```
+## **Installation & Setup**
 
-3. **Environment Variables:**
-    ```env
-    APP_SECRET="your_meta_app_secret"
-    VERIFY_TOKEN="your_verify_token"
-    GEMINI_API_KEY="your_gemini_api_key"
-    INSTAGRAM_ACCOUNT_ID="your_instagram_account_id"
-    CELERY_BROKER_URL="redis://your-redis-url:6379/0"
-    CELERY_RESULT_BACKEND="redis://your-redis-url:6379/0"
-    ACCOUNTS='{"INSTAGRAM_ACCOUNT_ID": "INSTAGRAM_ACCESS_TOKEN"}'
-    ```
+### **Local Development Setup**
 
-4. **Webhook Configuration:**
-    - Use Render domain: `https://your-service.onrender.com/webhook`
+#### **Prerequisites**
+- Python 3.11+
+- Redis (for Celery broker)
 
-## CI/CD Pipeline
+```bash
+# Install Redis (Ubuntu/Debian)
+sudo apt-get install redis-server
 
-Automated testing with GitHub Actions:
-- Runs on every push to `main` branch
-- Executes unit tests with pytest
-- Verifies server health endpoints
-- Workflow file: `.github/workflows/buildrun.yaml`
+# Install Redis (MacOS)
+brew install redis
+```
 
-## Usage
+#### **Clone Repository & Setup Environment**
 
-1. **Webhook Setup:**
-    - In Meta Developer Portal:
-      - Callback URL: `https://your-domain/webhook`
-      - Verify Token: Your `VERIFY_TOKEN`
-      - Subscribe to: messages, comments, mentions
-    ```
+```bash
+git clone https://github.com/your-github-username/your-repo-name.git
+cd your-repo-name
+```
 
-2. **Endpoints:**
-    - `GET /ping`: Server status check
-    - `GET /health`: Detailed system metrics
-    - `GET /events`: Real-time event stream
-    - `GET /webhook_events`: Stored webhook events
+#### **Configure Environment Variables**
+Create a `.env` file and add:
 
-## Customization
+```ini
+APP_SECRET="your_meta_app_secret"
+VERIFY_TOKEN="your_verify_token"
+GEMINI_API_KEY="your_gemini_api_key"
+INSTAGRAM_ACCOUNT_ID="your_instagram_account_id"
+ACCOUNTS={"IG_ACCOUNT_ID_1":"IG_ACCESS_TOKEN_1", "": "", ...}
+CELERY_BROKER_URL="redis://localhost:6379/0"
+CELERY_RESULT_BACKEND="redis://localhost:6379/0"
+```
 
-1. **Response Messages:**
-    - Modify `default_dm_response_positive/negative` in `server.py`
-    
-2. **LLM Prompts:**
-    - Edit `collection_system_prompt/system_prompt.txt`
+#### **Install Dependencies**
 
-3. **Sentiment Threshold:**
-    - Adjust `analyze_sentiment` thresholds in `server.py`
+```bash
+pip install -r requirements.txt
+python -c "import nltk; nltk.download('vader_lexicon')"
+```
 
-4. **Task Delays:**
-    - Modify `random.randint()` values in webhook handlers
+#### **Run Services**
 
-## Contributing
+```bash
+# Terminal 1 - Start Celery Worker
+celery -A server.celery worker --loglevel=info
 
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/awesome-feature`
-3. Commit changes: `git commit -m "Add awesome feature"`
-4. Push to branch: `git push origin feature/awesome-feature`
-5. Open a Pull Request
+# Terminal 2 - Start FastAPI Server
+uvicorn server:app --reload --host 0.0.0.0 --port 8000
+```
 
-## License
+---
 
-MIT License - See [LICENSE](LICENSE) file for details
+## **Deployment on Render**
 
-## Contact
+### **1. Provision Redis Instance**
+- Create a **Redis instance** on Render.
+- Obtain connection URL(Internal URL): `redis://<username>:<password>@<host>:<port>`.
 
-For issues and feature requests:
-- [Open GitHub Issue](https://github.com/your-github-username/your-repo-name/issues)
-- Email: your.email@example.com
+### **2. Deploy Web Service**
+- Create a new **Web Service** on Render.
+- Connect the current github repository with the service.
+- Enter the below the details in the appropriate sections:
+#### **Build Command:**
 
-**Disclaimer:** Use this bot in compliance with Instagram's terms of service. Avoid spammy behavior that might violate platform policies.
+```bash
+pip install -r requirements.txt && python -c "import nltk; nltk.download('vader_lexicon')"
+```
+
+#### **Start Command:**
+
+```bash
+bash -c "celery -A server.celery worker -l info & uvicorn server:app --host 0.0.0.0 --port 8000"
+```
+
+- Set up /health as the server health checkpoint section
+- Click on deploy service 
+
+---
+
+## **API Documentation**
+
+### **Available Endpoints**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/ping` | Server status check |
+| `GET` | `/health` | System metrics and health check |
+| `GET` | `/events` | Stream webhook events in real-time |
+| `POST` | `/webhook` | Handles Instagram webhook events |
+
+---
+
+## **Customization**
+
+- Modify **default responses** in `server.py`.
+- Update **sentiment thresholds** in `analyze_sentiment()`.
+- Adjust **response delays** in webhook handlers.
+- Fine-tune **Google Gemini prompts** in `system_prompt.txt`.
+
+---
+
+## **CI/CD Pipeline**
+
+- GitHub Actions for automated testing.
+- Runs unit tests (`pytest`) on each push.
+- Verifies API health endpoints.
+- Configuration in `.github/workflows/buildrun.yaml`.
+
+---
+
+## **Contributing**
+
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/your-feature`.
+3. Commit changes: `git commit -m "Add your feature"`.
+4. Push to GitHub: `git push origin feature/your-feature`.
+5. Open a **Pull Request**.
+
+---
+
+## **License**
+
+[MIT License](LICENSE)
+
+---
+
+## **Contact**
+
+- [GitHub Issues](https://github.com/your-github-username/your-repo-name/issues)
+- Email: `your.email@example.com`
+
+---
+
+**⚠ Disclaimer:** Ensure compliance with Instagram's terms of service. Avoid spam-like behavior that may result in account suspension.
+
